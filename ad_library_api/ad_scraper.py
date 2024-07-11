@@ -14,6 +14,8 @@ from urllib.parse import urlsplit, parse_qs
 
 import os
 
+ACCESS_TOKEN = ""
+
 countries = [
     "DE",
     'BR', 'IN', 'GB', 'US', 'CA', 'AR', 'AU', 'AT', 'BE', 'CL', 'CN', 'CO', 'HR', 'DK', 'DO',
@@ -46,6 +48,32 @@ countries = [
 # colorful_json = highlight(formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
 # print(colorful_json)
 
+def page_id_extract(company_name, ctry):
+    """
+    to get the id of a Facebook page of a company
+    :param ctry: ad_reached_country
+    :param company_name: name of the company
+    """
+    args_ = dict()
+    args_[
+        "access_token"] = ACCESS_TOKEN
+    args_["search_terms"] = company_name
+    args_["ad_reached_countries"] = [ctry]
+    args_["fields"] = ("id,ad_creation_time,ad_creative_bodies,ad_creative_link_captions,ad_creative_link_descriptions,"
+                      "ad_creative_link_titles,ad_delivery_start_time,ad_delivery_stop_time,ad_snapshot_url,"
+                      "age_country_gender_reach_breakdown,bylines,currency,delivery_by_region,"
+                      "demographic_distribution,estimated_audience_size,eu_total_reach,impressions,languages,page_id,"
+                      "page_name,publisher_platforms,InsightsRangeValue,target_ages,target_gender,target_locations")
+    graph.version = "v20.0"
+    method_ = "/ads_archive"
+    r_ = graph.request(method_, args_)
+    df = pd.DataFrame(r_.get('data', []))
+
+    page_id = df.loc[df["page_name"].str.lower() == company_name.lower(), "page_id"].head(1).item()
+    return page_id
+
+
+
 def build_args(url=None):
     for k, v in args.items():
         args[k] = v
@@ -64,13 +92,13 @@ graph.version = "v20.0"
 for country in countries:
     args = dict()
     args[
-        "access_token"] = ''
+        "access_token"] = ACCESS_TOKEN
     # args["search_terms"] = '*'
-    args["search_page_ids"] = ''
+    args["search_page_ids"] = '306050696452078'
     # args["ad_type"] = 'ALL'
     args["ad_reached_countries"] = [country]
-    args["media_type"] = "ALL"
-    args["languages"] = "['de', 'en']"
+    args["media_type"] = 'MEME'
+    args["languages"] = 'en'
     args['ad_active_status'] = 'ALL'
     args["ad_delivery_date_min"] = "2024-05-26"
     args["ad_delivery_date_max"] = "2024-06-27"
